@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Учёт велосипедов на парковке</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .container { max-width: 800px; margin: auto; }
+        .upload-box { border: 2px dashed #ccc; padding: 20px; text-align: center; }
+        #resultImage { max-width: 100%; margin-top: 20px; border: 1px solid #ddd; }
+        .stats { font-size: 1.2em; margin: 10px 0; }
+        .btn { background: #007bff; color: white; border: none; padding: 10px 20px; cursor: pointer; }
+        .btn:hover { background: #0056b3; }
+        .report-links a { margin-right: 20px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🚲 Учёт велосипедов на парковке у метро</h1>
+    <div class="upload-box">
+        <input type="file" id="imageInput" accept="image/*">
+        <button class="btn" onclick="processImage()">Запустить обработку</button>
+    </div>
+    <div id="resultArea">
+        <div id="stats" class="stats"></div>
+        <img id="resultImage" src="" alt="Результат появится здесь">
+    </div>
+    <div class="report-links">
+        <button class="btn" onclick="downloadReport('pdf')">Скачать PDF-отчёт</button>
+        <button class="btn" onclick="downloadReport('excel')">Скачать Excel-отчёт</button>
+    </div>
+</div>
+<script>
+    async function processImage() {
+        const fileInput = document.getElementById('imageInput');
+        const file = fileInput.files[0];
+        if (!file) {
+            alert('Выберите изображение');
+            return;
+        }
+        const formData = new FormData();
+        formData.append('image', file);
+
+        const response = await fetch('/process', { method: 'POST', body: formData });
+        const data = await response.json();
+        if (data.error) {
+            alert(data.error);
+            return;
+        }
+        document.getElementById('stats').innerHTML = `🔍 Обнаружено велосипедов: <strong>${data.count}</strong>`;
+        document.getElementById('resultImage').src = data.result_url + '?t=' + new Date().getTime();
+    }
+
+    function downloadReport(type) {
+        window.location.href = `/report/${type}`;
+    }
+</script>
+</body>
+</html>
